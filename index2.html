@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Connections</title>
+<script src="https://cdn.tailwindcss.com/3.4.16">
+</script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: { primary: "#4A1B8C", secondary: "#6B3FA0" },
+      borderRadius: {
+        none: "0px",
+        sm: "4px",
+        DEFAULT: "8px",
+        md: "12px",
+        lg: "16px",
+        xl: "20px",
+        "2xl": "24px",
+        "3xl": "32px",
+        full: "9999px",
+        button: "8px",
+      },
+    },
+  },
+};
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+<style>
+:where([class^="ri-"])::before { content: "\f3c2"; }
+body {
+font-family: 'Inter', sans-serif;
+overflow-x: hidden;
+}
+#mobileMenu {
+transform: translateY(-100%);
+transition: transform 0.3s ease-in-out;
+}
+#mobileMenu.hidden {
+display: none;
+}
+.map-container {
+position: relative;
+overflow: hidden;
+background-position: center;
+background-repeat: no-repeat;
+background-size: cover;
+box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+.city-marker {
+position: absolute;
+transform: translate(-50%, -50%);
+opacity: 0;
+transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.city-marker.active {
+opacity: 1;
+}
+.city-marker .dot {
+width: 6px;
+height: 6px;
+background: #4A1B8C;
+border-radius: 50%;
+position: relative;
+}
+.city-marker .ring {
+position: absolute;
+inset: -4px;
+border: 2px solid rgba(74, 27, 140, 0.5);
+border-radius: 50%;
+animation: pulse 2s infinite;
+}
+.city-marker {
+position: absolute;
+transform: translate(-50%, -50%);
+opacity: 0;
+transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.city-marker.active {
+opacity: 1;
+animation: pulse 2s infinite;
+}
+.city-marker .tooltip {
+position: absolute;
+bottom: 100%;
+left: 50%;
+transform: translateX(-50%);
+background-color: rgba(255, 255, 255, 0.1);
+backdrop-filter: blur(8px);
+color: white;
+padding: 0.5rem 1rem;
+border-radius: 8px;
+box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+opacity: 0;
+transition: opacity 0.3s ease;
+pointer-events: none;
+white-space: nowrap;
+margin-bottom: 8px;
+z-index: 10;
+border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.city-marker:hover .tooltip {
+opacity: 1;
+}
+@keyframes pulse {
+0% {
+box-shadow: 0 0 0 0 rgba(74, 27, 140, 0.5);
+}
+70% {
+box-shadow: 0 0 0 20px rgba(74, 27, 140, 0);
+}
+100% {
+box-shadow: 0 0 0 0 rgba(74, 27, 140, 0);
+}
+}
+.content-panel {
+backdrop-filter: blur(8px);
+background-color: rgba(255, 255, 255, 0.85);
+transition: all 0.3s ease;
+}
+.content-panel:hover {
+background-color: rgba(255, 255, 255, 0.95);
+}
+</style>
+</head>
+<body class="bg-gray-50">
+<!-- Header -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-transparent">
+<div class="container mx-auto px-8 py-6 flex items-center justify-between">
+<a href="#" class="text-2xl font-['Pacifico'] text-white">logo</a>
+<button id="menuBtn" class="md:hidden text-white focus:outline-none">
+<i class="ri-menu-line text-2xl"></i>
+</button>
+<nav id="mobileMenu" class="fixed md:relative top-[26px] left-0 w-full md:w-auto bg-primary/95 md:bg-transparent py-4 md:py-0 md:flex sm:hidden  backdrop-blur-lg md:backdrop-blur-none transform transition-transform duration-300 ease-in-out">
+<div class="flex flex-col md:flex-row justify-center md:justify-end items-center space-y-6 md:space-y-0 md:space-x-12">
+<a href="#" class="text-white hover:text-white/80 font-medium transition-colors">HOME</a>
+<a href="#" class="text-white hover:text-white/80 font-medium transition-colors">ABOUT</a>
+<a href="#" class="text-white hover:text-white/80 font-medium transition-colors">BLOG</a>
+<a href="#" class="text-white hover:text-white/80 font-medium transition-colors">CONTACT US</a>
+</div>
+</nav>
+</div>
+</header>
+<!-- Hero Section with Map -->
+<section class="h-screen bg-gradient-to-br from-[#4A1B8C] to-[#1E0B4B] relative overflow-hidden flex items-center">
+<div class="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-black/30 to-transparent"></div>
+<div class="container mx-auto px-8 pt-32 pb-20 relative z-10">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+<div class="order-2 lg:order-1 relative hero-map-container">
+<div class="w-full h-[600px] relative">
+<img src="https://static.readdy.ai/image/8c647bffff0d5c89ad7cd9218cde3a12/261284590f7cc6219e4b3554355d0287.png" alt="World Map" class="w-full h-full object-contain">
+</div>
+</div>
+<div class="order-1 lg:order-2">
+<h1 class="text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-8">WORLD MAP</h1>
+<p class="text-lg text-gray-300 mb-10 max-w-xl">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+<button class="px-8 py-3 bg-white text-[#4A1B8C] rounded-full hover:bg-white/90 transition-colors whitespace-nowrap text-sm font-medium">
+SIGN IN
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Interactive Map Section -->
+<div class="map-container w-full h-[600px] relative mx-auto mb-16">
+<img class="w-[1400px] " src="https://static.readdy.ai/image/8c647bffff0d5c89ad7cd9218cde3a12/339fedc0b30345dddd0cec3f30ca42ab.png" alt="World Map" class="w-full h-full object-contain">
+<!-- City Markers will be added dynamically via JS -->
+<!-- Floating Content Panel 1 -->
+<div class="content-panel absolute top-8 left-8 max-w-xs p-4 rounded-lg shadow-lg z-20">
+<h3 class="text-lg font-semibold text-gray-900 mb-2">Global Network</h3>
+<p class="text-gray-700 text-sm">Our network spans across 150+ countries, connecting major business hubs and emerging markets worldwide.</p>
+</div>
+<!-- Floating Content Panel 2 -->
+<div class="content-panel absolute bottom-8 right-8 max-w-xs p-4 rounded-lg shadow-lg z-20">
+<h3 class="text-lg font-semibold text-gray-900 mb-2">Real-time Connections</h3>
+<p class="text-gray-700 text-sm">Watch as new connections form in real-time, showing the dynamic nature of our global presence.</p>
+</div>
+</div>
+</section>
+<!-- Key Metrics Section -->
+<section class="py-16 bg-[#340070]">
+<div class="container mx-auto px-4">
+<h2 class="text-3xl font-bold text-center text-gray-900 mb-12">Our Global Impact</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+<div class="bg-gray-50 p-6 rounded-lg text-center">
+<div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+<i class="ri-global-line text-primary text-xl"></i>
+</div>
+<h3 class="text-4xl font-bold text-gray-900 mb-2">150+</h3>
+<p class="text-gray-600">Countries Covered</p>
+</div>
+<div class="bg-gray-50 p-6 rounded-lg text-center">
+<div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+<i class="ri-building-line text-secondary text-xl"></i>
+</div>
+<h3 class="text-4xl font-bold text-gray-900 mb-2">1,200+</h3>
+<p class="text-gray-600">Major Cities</p>
+</div>
+<div class="bg-gray-50 p-6 rounded-lg text-center">
+<div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+<i class="ri-user-line text-yellow-500 text-xl"></i>
+</div>
+<h3 class="text-4xl font-bold text-gray-900 mb-2">25M+</h3>
+<p class="text-gray-600">Active Users</p>
+</div>
+<div class="bg-gray-50 p-6 rounded-lg text-center">
+<div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+<i class="ri-exchange-line text-red-500 text-xl"></i>
+</div>
+<h3 class="text-4xl font-bold text-gray-900 mb-2">500K+</h3>
+<p class="text-gray-600">Daily Connections</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured Regions Section -->
+<section class="py-16 bg-gray-50">
+<div class="container mx-auto px-4">
+<h2 class="text-3xl font-bold text-center text-gray-900 mb-4">Featured Regions</h2>
+<p class="text-gray-600 text-center max-w-2xl mx-auto mb-12">Discover our most active regions and explore the unique opportunities each area offers.</p>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Region Card 1 -->
+<div class="bg-white rounded-lg overflow-hidden shadow-md transition-transform hover:scale-[1.02]">
+<div class="h-48 overflow-hidden">
+<img src="https://readdy.ai/api/search-image?query=Aerial%20view%20of%20North%20America%20with%20major%20cities%20like%20New%20York%2C%20San%20Francisco%2C%20Toronto%2C%20and%20Mexico%20City%20highlighted%20with%20soft%20glowing%20lights.%20Modern%2C%20clean%2C%20minimalist%20style%20with%20soft%20blue%20tones.&width=600&height=400&seq=1&orientation=landscape" alt="North America" class="w-full h-full object-cover object-top">
+</div>
+<div class="p-6">
+<h3 class="text-xl font-bold text-gray-900 mb-2">North America</h3>
+<p class="text-gray-600 mb-4">Home to 350+ connected cities with major hubs in New York, San Francisco, Toronto, and Mexico City.</p>
+<div class="flex items-center text-sm text-gray-500">
+<span class="w-4 h-4 flex items-center justify-center mr-2">
+<i class="ri-building-line"></i>
+</span>
+<span>350+ Cities</span>
+<span class="mx-2">•</span>
+<span class="w-4 h-4 flex items-center justify-center mr-2">
+<i class="ri-user-line"></i>
+</span>
+<span>8.2M Users</span>
+</div>
+</div>
+</div>
+<!-- Region Card 2 -->
+<div class="bg-white rounded-lg overflow-hidden shadow-md transition-transform hover:scale-[1.02]">
+<div class="h-48 overflow-hidden">
+<img src="https://readdy.ai/api/search-image?query=Aerial%20view%20of%20Europe%20with%20major%20cities%20like%20London%2C%20Paris%2C%20Berlin%2C%20and%20Madrid%20highlighted%20with%20soft%20glowing%20lights.%20Modern%2C%20clean%2C%20minimalist%20style%20with%20soft%20blue%20tones.&width=600&height=400&seq=2&orientation=landscape" alt="Europe" class="w-full h-full object-cover object-top">
+</div>
+<div class="p-6">
+<h3 class="text-xl font-bold text-gray-900 mb-2">Europe</h3>
+<p class="text-gray-600 mb-4">A network of 420+ cities with key connections in London, Paris, Berlin, and Madrid.</p>
+<div class="flex items-center text-sm text-gray-500">
+<span class="w-4 h-4 flex items-center justify-center mr-2">
+<i class="ri-building-line"></i>
+</span>
+<span>420+ Cities</span>
+<span class="mx-2">•</span>
+<span class="w-4 h-4 flex items-center justify-center mr-2">
+<i class="ri-user-line"></i>
+</span>
+<span>7.5M Users</span>
+</div>
+</div>
+</div>
+<!-- Region Card 3 -->
+<div class="bg-white rounded-lg overflow-hidden shadow-md transition-transform hover:scale-[1.02]">
+<div class="h-48 overflow-hidden">
+<img src="https://readdy.ai/api/search-image?query=Aerial%20view%20of%20Asia-Pacific%20with%20major%20cities%20like%20Tokyo%2C%20Singapore%2C%20Shanghai%2C%20and%20Sydney%20highlighted%20with%20soft%20glowing%20lights.%20Modern%2C%20clean%2C%20minimalist%20style%20with%20soft%20blue%20tones.&width=600&height=400&seq=3&orientation=landscape" alt="Asia-Pacific" class="w-full h-full object-cover object-top">
+</div>
+<div class="p-6">
+<h3 class="text-xl font-bold text-gray-900 mb-2">Asia-Pacific</h3>
+<p class="text-gray-600 mb-4">Rapidly expanding with 480+ cities including Tokyo, Singapore, Shanghai, and Sydney.</p>
+<div class="flex items-center text-sm text-gray-500">
+<span class="w-4 h-4 flex items-center justify-center mr-2">
+<i class="ri-building-line"></i>
+</span>
+<span>480+ Cities</span>
+<span class="mx-2">•</span>
+<span class="w-4 h-4 flex items-center justify-center mr-2">
+<i class="ri-user-line"></i>
+</span>
+<span>9.3M Users</span>
+</div>
+</div>
+</div>
+</div>
+<div class="text-center mt-10">
+<button class="px-6 py-3 bg-primary text-white rounded-button hover:bg-primary/90 transition-colors whitespace-nowrap">
+<span class="w-5 h-5 flex items-center justify-center mr-2 inline-block">
+<i class="ri-earth-line"></i>
+</span>
+View All Regions
+</button>
+</div>
+</div>
+</section>
+<!-- How It Works Section -->
+<section class="py-16 bg-white">
+<div class="container mx-auto px-4">
+<h2 class="text-3xl font-bold text-center text-gray-900 mb-4">How Our Global Network Works</h2>
+<p class="text-gray-600 text-center max-w-2xl mx-auto mb-12">Understanding the technology behind our worldwide connections</p>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="text-center p-6">
+<div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+<i class="ri-radar-line text-primary text-2xl"></i>
+</div>
+<h3 class="text-xl font-bold text-gray-900 mb-3">Real-time Detection</h3>
+<p class="text-gray-600">Our advanced sensors detect new connections as they form, providing instant visibility across the network.</p>
+</div>
+<div class="text-center p-6">
+<div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+<i class="ri-link-m text-secondary text-2xl"></i>
+</div>
+<h3 class="text-xl font-bold text-gray-900 mb-3">Secure Connections</h3>
+<p class="text-gray-600">Every connection is encrypted and verified, ensuring data integrity and privacy across borders.</p>
+</div>
+<div class="text-center p-6">
+<div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+<i class="ri-bubble-chart-line text-purple-600 text-2xl"></i>
+</div>
+<h3 class="text-xl font-bold text-gray-900 mb-3">Intelligent Routing</h3>
+<p class="text-gray-600">Our AI-powered system optimizes connection paths for speed and reliability based on real-world conditions.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="py-16 bg-gradient-to-r from-[#4d00b9] to-primary">
+<div class="container mx-auto px-4 text-center">
+<h2 class="text-3xl font-bold text-white mb-4">Ready to Explore Our Global Network?</h2>
+<p class="text-blue-100 max-w-2xl mx-auto mb-8">Join thousands of organizations already leveraging our worldwide connections for their global operations.</p>
+<div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+<button class="px-6 py-3 bg-white text-primary font-medium rounded-button hover:bg-gray-100 transition-colors whitespace-nowrap w-full sm:w-auto">
+<span class="w-5 h-5 flex items-center justify-center mr-2 inline-block">
+<i class="ri-user-add-line"></i>
+</span>
+Sign Up Free
+</button>
+<button class="px-6 py-3 bg-transparent border border-white text-white rounded-button hover:bg-white/10 transition-colors whitespace-nowrap w-full sm:w-auto">
+<span class="w-5 h-5 flex items-center justify-center mr-2 inline-block">
+<i class="ri-calendar-line"></i>
+</span>
+Schedule a Demo
+</button>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-gray-900 text-white py-12">
+<div class="container mx-auto px-4">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+<div>
+<a href="#" class="text-2xl font-['Pacifico'] text-white mb-4 inline-block">logo</a>
+<p class="text-gray-400 mb-4">Connecting the world through innovative technology and reliable global networks.</p>
+<div class="flex space-x-4">
+<a href="#" class="w-8 h-8 flex items-center justify-center bg-gray-800 rounded-full hover:bg-primary transition-colors">
+<i class="ri-twitter-x-line"></i>
+</a>
+<a href="#" class="w-8 h-8 flex items-center justify-center bg-gray-800 rounded-full hover:bg-primary transition-colors">
+<i class="ri-linkedin-line"></i>
+</a>
+<a href="#" class="w-8 h-8 flex items-center justify-center bg-gray-800 rounded-full hover:bg-primary transition-colors">
+<i class="ri-facebook-line"></i>
+</a>
+<a href="#" class="w-8 h-8 flex items-center justify-center bg-gray-800 rounded-full hover:bg-primary transition-colors">
+<i class="ri-instagram-line"></i>
+</a>
+</div>
+</div>
+<div>
+<h3 class="text-lg font-semibold mb-4">Company</h3>
+<ul class="space-y-2">
+<li><a href="#" class="text-gray-400 hover:text-white transition-colors">About Us</a></li>
+<li><a href="#" class="text-gray-400 hover:text-white transition-colors">Careers</a></li>
+<li><a href="#" class="text-gray-400 hover:text-white transition-colors">Press</a></li>
+<li><a href="#" class="text-gray-400 hover:text-white transition-colors">Blog</a></li>
+<li><a href="#" class="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+</ul>
+</div>
+<div>
+<h3 class="text-lg font-semibold mb-4">Resources</h3>
+<ul class="space-y-2">
+<li><a href="#" class="text-gray-400 hover:text-white transition-colors">Documentation</a></li>
+<li><a href="#" class="text-gray-400 hover:text-white transition-colors">API Reference</a></li>
+<li><a href="#" class="text-gray-400 hover:text-white transition-colors">Status</a></li>
+<li><a href="#" class="text-gray-400 hover:text-white transition-colors">Case Studies</a></li>
+<li><a href="#" class="text-gray-400 hover:text-white transition-colors">Support</a></li>
+</ul>
+</div>
+<div>
+<h3 class="text-lg font-semibold mb-4">Stay Updated</h3>
+<p class="text-gray-400 mb-4">Subscribe to our newsletter for the latest updates.</p>
+<form class="flex">
+<input type="email" placeholder="Your email" class="px-4 py-2 bg-gray-800 text-white rounded-l-button focus:outline-none focus:ring-2 focus:ring-primary w-full" />
+<button type="submit" class="px-4 py-2 bg-primary text-white rounded-r-button hover:bg-primary/90 transition-colors whitespace-nowrap">
+<i class="ri-send-plane-line"></i>
+</button>
+</form>
+</div>
+</div>
+<div class="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
+<p class="text-gray-400 text-sm mb-4 md:mb-0">© 2025 Global Connections. All rights reserved.</p>
+<div class="flex space-x-6">
+<a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Privacy Policy</a>
+<a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Terms of Service</a>
+<a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Cookie Policy</a>
+</div>
+</div>
+</div>
+</footer>
+<script id="mobile-menu">
+document.addEventListener("DOMContentLoaded", function () {
+  const menuBtn = document.getElementById("menuBtn");
+  const mobileMenu = document.getElementById("mobileMenu");
+  let isOpen = false;
+  menuBtn.addEventListener("click", () => {
+    isOpen = !isOpen;
+    if (isOpen) {
+      mobileMenu.classList.remove("sm:hidden");
+      mobileMenu.style.transform = "translateY(0)";
+    } else {
+      mobileMenu.style.transform = "translateY(-100%)";
+      setTimeout(() => {
+        mobileMenu.classList.add("sm:hidden");
+      }, 300);
+    }
+    menuBtn.innerHTML = isOpen
+      ? '<i class="ri-close-line text-2xl"></i>'
+      : '<i class="ri-menu-line text-2xl"></i>';
+  });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+const mapContainer = document.querySelector('.map-container');
+const heroMapContainer = document.querySelector('.hero-map-container');
+// City data with coordinates (percentage based on container)
+const cities = [
+{ name: 'New York', x: 25, y: 40, size: 12 },
+{ name: 'London', x: 45, y: 35, size: 14 },
+{ name: 'Tokyo', x: 82, y: 42, size: 14 },
+{ name: 'Sydney', x: 85, y: 75, size: 12 },
+{ name: 'Rio de Janeiro', x: 33, y: 68, size: 10 },
+{ name: 'Cape Town', x: 52, y: 75, size: 10 },
+{ name: 'Moscow', x: 58, y: 30, size: 12 },
+{ name: 'Dubai', x: 62, y: 48, size: 12 },
+{ name: 'Singapore', x: 75, y: 58, size: 12 },
+{ name: 'San Francisco', x: 18, y: 42, size: 10 },
+{ name: 'Mumbai', x: 68, y: 52, size: 12 },
+{ name: 'Berlin', x: 50, y: 34, size: 10 },
+{ name: 'Paris', x: 47, y: 38, size: 12 },
+{ name: 'Beijing', x: 78, y: 38, size: 12 },
+{ name: 'Mexico City', x: 22, y: 52, size: 10 }
+];
+// Create city markers
+function createCityMarkers(container) {
+cities.forEach((city, index) => {
+const marker = document.createElement('div');
+marker.className = 'city-marker';
+marker.style.left = `${city.x}%`;
+marker.style.top = `${city.y}%`;
+const dot = document.createElement('div');
+dot.className = 'w-2 h-2 bg-[#7b26f9] rounded-full shadow-lg shadow-[#7b26f1]/50';
+const ring = document.createElement('div');
+ring.className = 'absolute inset-0 -m-2 rounded-full border-2 border-[#7b26f1]/50';
+const tooltip = document.createElement('div');
+tooltip.className = 'tooltip';
+tooltip.textContent = city.name;
+marker.appendChild(dot);
+marker.appendChild(ring);
+marker.appendChild(tooltip);
+container.appendChild(marker);
+// Animate markers with delay
+setTimeout(() => {
+marker.classList.add('active');
+}, 500 + (index * 300));
+});
+}
+createCityMarkers(mapContainer);
+createCityMarkers(heroMapContainer);
+});
+</script>
+
+</body>
+</html>
